@@ -6,13 +6,14 @@ function parseLikes() {
         }
 
         // Get and parse the view count element
-        viewsElem = document.getElementsByClassName("view-count")[0]
+        var viewsContainer = document.querySelector("#info #info-text #count")
+        var viewsElem = viewsContainer.getElementsByClassName("view-count")[0]
         var viewsText = viewsElem.innerText.split(" ")[0].replace(/,/g, '');
         var views = parseInt(viewsText);
         // console.log(views + " views");
 
         // Get and parse the likes count element
-        likesElem = document.querySelector("#top-level-buttons-computed").querySelector("#text");
+        likesElem = document.querySelector("#menu-container #top-level-buttons-computed #text")
         var likesText = likesElem.ariaLabel;
         likesText = likesText.split(" ")[0].replace(/,/g, '');
         likesText = likesText.replace("K", "000").replace("M", "000000").replace("B", "000000000");
@@ -39,21 +40,20 @@ function parseLikes() {
     }
 }
 
-// Watch for video change or like button push and trigger refresh
+// Wait for page to load fully
+function docReady(fn) {
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        setTimeout(fn, 500);
+    } else {
+        document.addEventListener("DOMContentLoaded", fn);
+    }
+}
+
 function createObservers() {
     const observer = new MutationObserver(function() { setTimeout(parseLikes(), 1) });
     const observerOpts = { attributes: true };
     observer.observe(document.querySelector("title"), observerOpts);
-    observer.observe(document.querySelector("#top-level-buttons-computed").querySelector("#button"), observerOpts);
-}
-
-// Wait for page to load fully
-function docReady(fn) {
-    if (document.readyState === "complete" || document.readyState === "interactive") {
-        setTimeout(fn, 1);
-    } else {
-        document.addEventListener("DOMContentLoaded", fn);
-    }
+    observer.observe(document.querySelector("#menu-container #top-level-buttons-computed #button #button"), observerOpts);
 }
 
 docReady(function() {
