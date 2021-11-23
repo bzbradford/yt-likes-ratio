@@ -1,3 +1,28 @@
+// Parses view count and likes count for YouTube videos
+
+var countSelector = "#info #info-text #count"
+var likesSelector = "#menu-container #top-level-buttons-computed #text"
+
+function elementReady(selector) {
+    return new Promise((resolve, reject) => {
+        let el = document.querySelector(selector);
+        if (el) {
+          resolve(el); 
+          return
+        }
+        new MutationObserver((mutationRecords, observer) => {
+            Array.from(document.querySelectorAll(selector)).forEach((element) => {
+                resolve(element);
+                observer.disconnect();
+            });
+        })
+        .observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+    });
+}
+
 function parseLikes() {
     try {
         // Remove any existing likes ratio element
@@ -6,14 +31,14 @@ function parseLikes() {
         }
 
         // Get and parse the view count element
-        var viewsContainer = document.querySelector("#info #info-text #count")
+        var viewsContainer = document.querySelector(countSelector)
         var viewsElem = viewsContainer.getElementsByClassName("view-count")[0]
         var viewsText = viewsElem.innerText.split(" ")[0].replace(/,/g, '');
         var views = parseInt(viewsText);
         // console.log(views + " views");
 
         // Get and parse the likes count element
-        likesElem = document.querySelector("#menu-container #top-level-buttons-computed #text")
+        likesElem = document.querySelector(likesSelector)
         var likesText = likesElem.ariaLabel;
         likesText = likesText.split(" ")[0].replace(/,/g, '');
         likesText = likesText.replace("K", "000").replace("M", "000000").replace("B", "000000000");
@@ -40,23 +65,12 @@ function parseLikes() {
     }
 }
 
-// Wait for page to load fully
-function docReady(fn) {
-    if (document.readyState === "complete" || document.readyState === "interactive") {
-        setTimeout(fn, 500);
-    } else {
-        document.addEventListener("DOMContentLoaded", fn);
-    }
-}
-
+// Observe video change or like button press and refresh the count
 function createObservers() {
-    const observer = new MutationObserver(function() { setTimeout(parseLikes(), 1) });
-    const observerOpts = { attributes: true };
-    observer.observe(document.querySelector("title"), observerOpts);
-    observer.observe(document.querySelector("#menu-container #top-level-buttons-computed #button #button"), observerOpts);
+    const observer = new MutationObserver(() => { parseLikes(); });
+    observer.observe(document.querySelector("title"), { attributes: true });
+    observer.observe(document.querySelector("#menu-container #top-level-buttons-computed #button #button"), { attributes: true });
 }
 
-docReady(function() {
-    parseLikes();
-    createObservers();
-});
+// Wait for both elements to be ready on the page
+(elementReady(countSelector) && elementReady(likesSelector)).then(() => { parseLikes(); createObservers(); })
