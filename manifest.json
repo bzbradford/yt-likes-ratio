@@ -1,9 +1,9 @@
 {
   "name": "YouTube Likes Ratio",
   "description": "Shows percent of viewers who liked the video. Useful proxy for the old like:dislike ratio.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "manifest_version": 3,
-  "host_permissions": ["*://*.youtube.com/watch*"],
+  "host_permissions": ["*://*.youtube.com/*"],
   "icons": {
     "16": "/assets/icon-16.png",
     "32": "/assets/icon-32.png",
@@ -12,7 +12,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.youtube.com/watch*"],
+      "matches": ["*://*.youtube.com/*"],
       "js": ["yt_ratio.js"]
     }
   ]
