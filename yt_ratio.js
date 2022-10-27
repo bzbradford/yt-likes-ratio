@@ -1,8 +1,8 @@
 // Parses view count and likes count for YouTube videos
 
-var viewsSelector = "#info #info-text #count";
-var likesSelector = "#menu-container #top-level-buttons-computed #text";
-var likeButtonSelector = "#menu-container #top-level-buttons-computed #button #button";
+var viewsSelector = "#count > ytd-video-view-count-renderer > span.view-count.style-scope.ytd-video-view-count-renderer"
+var likesSelector = "#segmented-like-button > ytd-toggle-button-renderer > yt-button-shape > button"
+var likeButtonSelector = "#segmented-like-button > ytd-toggle-button-renderer > yt-button-shape > button";
 var ratioElemId = "yt-likes-ratio";
 
 function elementReady(selector) {
@@ -27,26 +27,35 @@ function elementReady(selector) {
 function parseLikes() {
     try {
         // Remove any existing likes ratio element
-        if (document.contains(document.getElementById(ratioElemId))) document.getElementById(ratioElemId).remove();
+        if (document.contains(document.getElementById(ratioElemId))) {
+            document.getElementById(ratioElemId).remove();
+        }
 
         // Get and parse the view count element
-        let viewsContainer = document.querySelector(viewsSelector);
-        let viewsElem = viewsContainer.getElementsByClassName("view-count")[0];
+        let viewsElem = document.querySelector(viewsSelector);
         let viewsText = viewsElem.innerText.split(" ")[0].replace(/,/g, '');
         let views = parseInt(viewsText);
-        // console.log(views + " views");
 
         // Get and parse the likes count element
         let likesElem = document.querySelector(likesSelector);
-        let likesText = likesElem.ariaLabel.split(" ")[0].replace(/,/g, '').replace("K", "000").replace("M", "000000").replace("B", "000000000");
-        if (likesText.includes(".")) likesText = likesText.substring(0, likesText.length - 1);
+        let likesText = likesElem.ariaLabel
+        if (likesText.includes("like this video")) {
+            likesText = likesText.split("with ")[1].split(" ")[0]
+        } else {
+            likesText = likesText.split(" ")[0]
+        }
+        likesText = likesText.replace(/,/g, '').replace("K", "000").replace("M", "000000").replace("B", "000000000");
+        if (likesText.includes(".")) {
+            likesText = likesText.substring(0, likesText.length - 1);
+        }
         let likes = parseInt(likesText);
-        // console.log(likes + " likes");
 
         // Create ratio
         let ratio = likes * 1.0 / views;
         let ratioText = "(" + (ratio * 100).toFixed(2) + "% liked)";
-        // console.log(ratioText);
+
+        // Log the results
+        console.log("Parsed likes as " + likes + " likes / " + views + " views = " + ratioText);
 
         // Create element with ratio text in it
         const ratioElem = document.createElement("span");
@@ -64,10 +73,14 @@ function parseLikes() {
 const observer = new MutationObserver(() => { parseLikes() });
 
 // Create an observer on the page title to trigger the parse
-elementReady("title").then(() => { observer.observe(document.querySelector("title"), { attributes: true }) });
+elementReady("title").then(() => {
+    observer.observe(document.querySelector("title"), { attributes: true })
+});
 
 // Create observer on the like button to re-parse
-elementReady(likeButtonSelector).then(() => { observer.observe(document.querySelector(likeButtonSelector), { attributes: true }) });
+elementReady(likeButtonSelector).then(() => {
+    observer.observe(document.querySelector(likeButtonSelector), { attributes: true })
+});
 
-// Wait for vew and likes elements to be ready on the page to run the parse
+// Wait for view and likes elements to be ready on the page to run the parse
 (elementReady(viewsSelector) && elementReady(likesSelector)).then(() => { parseLikes() });
