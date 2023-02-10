@@ -48,23 +48,28 @@ function parseLikes() {
         if (likesText.includes(".")) {
             likesText = likesText.substring(0, likesText.length - 1);
         }
-        let likes = parseInt(likesText);
 
         // Create ratio
-        let ratio = likes * 1.0 / views;
-        let ratioText = "(" + (ratio * 100).toFixed(2) + "% liked)";
+        let likes = parseInt(likesText);
 
-        // Log the results
-        console.log("Parsed likes as " + likes + " likes / " + views + " views = " + ratioText);
+        if (!isNaN(likes)) {
+            let ratio = likes * 1.0 / views;
+            let ratioText = "(" + (ratio * 100).toFixed(2) + "% liked)";
 
-        // Create element with ratio text in it
-        const ratioElem = document.createElement("span");
-        ratioElem.id = ratioElemId;
-        ratioElem.style.marginLeft = "0.5em";
+            // Log the results
+            console.log("Parsed likes as " + likes + " likes / " + views + " views = " + ratioText);
 
-        const ratioContent = document.createTextNode(ratioText);
-        ratioElem.appendChild(ratioContent);
-        likesElem.insertBefore(ratioElem, null);
+            // Create element with ratio text in it
+            const ratioElem = document.createElement("span");
+            ratioElem.id = ratioElemId;
+            ratioElem.style.marginLeft = "0.5em";
+
+            const ratioContent = document.createTextNode(ratioText);
+            ratioElem.appendChild(ratioContent);
+            likesElem.insertBefore(ratioElem, null);  
+        } else {
+            console.log("This video has no likes yet.")
+        }
     } catch(err) {
         console.log("Parsing view counts failed with error: " + err.message);
     }
