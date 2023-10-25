@@ -1,10 +1,11 @@
 // --- Parses view count and likes count for YouTube videos --- //
 
 // element definitions
-var viewsSelector = "#count > ytd-video-view-count-renderer > span.view-count.style-scope.ytd-video-view-count-renderer"
-var likesSelector = "#segmented-like-button > ytd-toggle-button-renderer > yt-button-shape > button"
+var viewsSelector = "#count > ytd-video-view-count-renderer > span.view-count.style-scope.ytd-video-view-count-renderer";
+var likesSelector = "#segmented-like-button > ytd-toggle-button-renderer > yt-button-shape > button";
 var likeButtonSelector = "#segmented-like-button > ytd-toggle-button-renderer > yt-button-shape > button";
 var ratioElemId = "yt-likes-ratio";
+var ratioElemAnchor = "#segmented-like-button > ytd-toggle-button-renderer > yt-button-shape > button > div.yt-spec-button-shape-next__button-text-content";
 
 // await element then trigger callback
 const elementReady = (selector) => {
@@ -24,6 +25,13 @@ const elementReady = (selector) => {
       subtree: true
     });
   });
+}
+
+const insertAfter = (newNode, referenceNodeSelector) => {
+  const referenceNode = document.querySelector(referenceNodeSelector);
+  if (referenceNode && referenceNode.parentNode) {
+    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+  }
 }
 
 const parseLikes = () => {
@@ -68,7 +76,7 @@ const parseLikes = () => {
 
       const ratioContent = document.createTextNode(ratioText);
       ratioElem.appendChild(ratioContent);
-      likesElem.insertBefore(ratioElem, null);  
+      insertAfter(ratioElem, ratioElemAnchor);
     } else {
       console.log("This video has no likes yet.")
     }
