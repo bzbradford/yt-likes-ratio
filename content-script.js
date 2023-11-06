@@ -58,7 +58,7 @@ const parseRatio = () => {
   if (isNaN(likes)) likes = 0;
   let ratio = likes * 1.0 / views;
   let ratioText = '(' + (ratio * 100).toFixed(2) + '% liked)';
-  console.log('Parsed likes as ' + likes + ' likes / ' + views + ' views = ' + ratioText);
+  console.log('YouTube Likes Ratio >> Parsed likes as ' + likes + ' likes / ' + views + ' views = ' + ratioText);
   return ratioText;
 }
 
@@ -86,7 +86,7 @@ const parseLikes = () => {
     let ratioText = parseRatio();
     createRatioElem(ratioText);
   } catch(err) {
-    console.log('Youtube Likes Ratio | Parsing view counts failed with error: ' + err.message);
+    console.log('YouTube Likes Ratio >> Parsing view counts failed with error: ' + err.message);
   }
 }
 
