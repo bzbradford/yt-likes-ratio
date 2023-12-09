@@ -3,18 +3,17 @@
 // element definitions
 var ratioElemId = 'yt-likes-ratio';
 
-// where to look for view counts
-var viewCountSelector1 = '#info > span'; // via .innerText on initial page load
-var viewCountSelector2 = '#view-count'; // via .ariaLabel after initial page load, receives periodic updates
+// where to look for view counts, in .innerText
+var viewCountSelector = "#count > ytd-video-view-count-renderer > span.view-count.style-scope.ytd-video-view-count-renderer"
 
-// where to look for likes count in .ariaLabel, receives periodic updates
+// where to look for likes count in .ariaLabel
 var likeButtonSelector = '#top-level-buttons-computed > segmented-like-dislike-button-view-model > yt-smartimation > div > div > like-button-view-model > toggle-button-view-model > button';
 
 // container to watch for removal of the likes ratio element to trigger re-creating it
-var reloadTriggerSelector = '#top-level-buttons-computed > segmented-like-dislike-button-view-model > yt-smartimation > div > div'
+var removalObserverSelector = '#top-level-buttons-computed';
 
 // insert the ratio element after this one
-var ratioElemAnchor = '#top-level-buttons-computed > segmented-like-dislike-button-view-model > yt-smartimation > div > div > like-button-view-model'
+var ratioElemAnchor = '#top-level-buttons-computed > segmented-like-dislike-button-view-model';
 
 // query selector aliases
 const $ = document.querySelector.bind(document);
@@ -44,29 +43,30 @@ const insertAfter = (newNode, referenceNodeSelector) => {
   }
 }
 
+// convert text count to number
+const parseCount = (str) => {
+  str = str.replace(/,/g, '').replace('K', '000').replace('M', '000000').replace('B', '000000000');
+  if (str.includes('.')) str = str.substring(0, str.length - 1);
+  let count = parseInt(str);
+  count = isNaN(count) ? 0 : count;
+  return count;
+}
+
 // returns the ratio text parsed from views and likes
 const parseRatio = () => {
-  // Get and parse the view count, location moves several seconds after page load
-  let vc1 = $(viewCountSelector1) // initial, number in .innnerText
-  let vc1Text = vc1 ? vc1.innerText : null;
-  let vc2 = $(viewCountSelector2) // rendered later, number in .ariaLabel
-  let vc2Text = vc2 ? vc2.ariaLabel : null;
-  let viewsText = vc2Text ? vc2Text : vc1Text;
+  // parse the view count, expected format '93,123 views'
+  let viewsElem = $(viewCountSelector)
+  let viewsText = viewsElem ? viewsElem.innerText.split(' ')[0] : null;
   if (viewsText == null) return;
-  viewsText = viewsText.split(' ')[0].replace(/,/g, '');
-  let views = parseInt(viewsText);
-  // console.log('views: ', views)
+  let views = parseCount(viewsText);
 
   // Parse the likes count, expected format 'like this video along with 3,239 other people'
-  let likesText = $(likeButtonSelector).ariaLabel
-  // console.log('likes: ', likesText)
-  likesText = likesText.split('with ')[1].split(' ')[0]
-  likesText = likesText.replace(/,/g, '').replace('K', '000').replace('M', '000000').replace('B', '000000000');
-  if (likesText.includes('.')) likesText = likesText.substring(0, likesText.length - 1);
+  let likesElem = $(likeButtonSelector);
+  let likesText = likesElem ? likesElem.ariaLabel.split('with ')[1].split(' ')[0] : null;
+  if (likesText == null) return;
+  let likes = parseCount(likesText);
 
   // create the ratio
-  let likes = parseInt(likesText);
-  if (isNaN(likes)) likes = 0;
   let ratio = likes * 1.0 / views;
   let ratioText = `${(ratio * 100).toFixed(2)}% liked`;
   // console.log('YouTube Likes Ratio >> ' + likes + ' likes / ' + views + ' views = ' + ratioText);
@@ -77,15 +77,14 @@ const parseRatio = () => {
 const createRatioElem = (ratioText) => {
   if ($(`#${ratioElemId}`)) {
     // console.log('elem already exists');
-    $(`#${ratioElemId} > div`).innerText = ratioText;
+    $(`#${ratioElemId}`).innerText = ratioText;
   } else {
     // console.log('created new element');
     const ratioElem = document.createElement('div');
     ratioElem.id = ratioElemId;
-    ratioElem.classList.add('yt-spec-button-shape-next--mono');
-    ratioElem.classList.add('yt-spec-button-shape-next--tonal');
-    ratioElem.style.cssText = 'white-space: nowrap;';
-    ratioElem.innerHTML = `<div class="yt-spec-button-shape-next--size-m yt-spec-button-shape-next--segmented-start">${ratioText}</div>`;
+    ratioElem.classList.add('yt-spec-button-shape-next--mono', 'yt-spec-button-shape-next--tonal', 'yt-spec-button-shape-next--size-m');
+    ratioElem.style.cssText = 'margin: 0 8px; white-space: nowrap;';
+    ratioElem.innerText = ratioText;
     insertAfter(ratioElem, ratioElemAnchor);
     return ratioElem;
   }
@@ -101,19 +100,37 @@ const parseLikes = () => {
   }
 }
 
+const initialize = () => {
+  // console.log('initialize called');
+  (elementReady(viewCountSelector) && elementReady(likeButtonSelector) && elementReady(removalObserverSelector)).then(() => {
+    // console.log('initialize activated');
+    parseLikes();
+    refreshObserver.observe($(viewCountSelector), { attributes: true });
+    refreshObserver.observe($(likeButtonSelector), { attributes: true });
+    removalObserver.observe($(removalObserverSelector), { childList: true, subtree: true });
+  });
+}
+
+const initializeObserver = new MutationObserver(() => {
+  // console.log('initilize observer')
+  initialize();
+})
+
 // set up observer to trigger likes ratio update on specific page changes
-const observer = new MutationObserver((mutations) => {
+const refreshObserver = new MutationObserver(() => {
+  // console.log('refresh observer')
   parseLikes();
 });
 
 // if the likes element gets removed, regenerate it
-const removalObserver = new MutationObserver(function(mutations) {
-  mutations.forEach(function(mutation) {
-    if (mutation.type === 'childList') {
-      mutation.removedNodes.forEach(function(removedNode) {
-        if (removedNode.id === ratioElemId) {
-          // console.log('regenerating like ratio')
-          parseLikes();
+const removalObserver = new MutationObserver((mutations) => {
+  // console.log('removal observer called')
+  mutations.forEach((mutation) => {
+    if (mutation.type == 'childList') {
+      mutation.removedNodes.forEach((removedNode) => {
+        if (removedNode.id == ratioElemId) {
+          // console.log('removal observer activated')
+          initialize();
         }
       });
     }
@@ -121,10 +138,8 @@ const removalObserver = new MutationObserver(function(mutations) {
 });
 
 // wait for view and likes elements to be ready on the page to run the parse
+// need to change this to reattach these observers on page change?
 elementReady(likeButtonSelector).then(() => {
-  parseLikes();
-  observer.observe($('title'), { attributes: true });
-  observer.observe($(viewCountSelector2), { attributes: true });
-  observer.observe($(likeButtonSelector), { attributes: true });
-  removalObserver.observe($(reloadTriggerSelector), { childList: true, subtree: true });
+  initializeObserver.observe($('head'), { childList: true, subtree: true });
+  initialize();
 });
