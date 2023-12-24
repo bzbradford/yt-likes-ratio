@@ -3,19 +3,19 @@
 let hasNoErrors = true;
 
 // element definitions
-let ratioElemId = 'yt-likes-ratio';
+const ratioElemId = 'yt-likes-ratio';
 
 // where to look for view counts, in .innerText
-let viewCountSelector = "#count > ytd-video-view-count-renderer > span.view-count.style-scope.ytd-video-view-count-renderer"
+const viewCountSelector = "#count > ytd-video-view-count-renderer > span.view-count.style-scope.ytd-video-view-count-renderer"
 
 // where to look for likes count in .ariaLabel
-let likeButtonSelector = '#top-level-buttons-computed > segmented-like-dislike-button-view-model > yt-smartimation > div > div > like-button-view-model > toggle-button-view-model > button';
+const likeButtonSelector = '#top-level-buttons-computed > segmented-like-dislike-button-view-model > yt-smartimation > div > div > like-button-view-model > toggle-button-view-model > button';
 
 // container to watch for removal of the likes ratio element to trigger re-creating it
-let removalObserverSelector = '#top-level-buttons-computed';
+const removalObserverSelector = '#top-level-buttons-computed';
 
 // insert the ratio element after this one
-let ratioElemAnchor = '#top-level-buttons-computed > segmented-like-dislike-button-view-model';
+const ratioElemAnchor = '#top-level-buttons-computed > segmented-like-dislike-button-view-model';
 
 // query selector alias
 const $ = document.querySelector.bind(document);
@@ -48,61 +48,60 @@ const parseCount = (str) => {
   return count;
 }
 
+// format number with thousands commas
+const fmtNumber = (num) => {
+  if (typeof num != 'number') return num;
+  return num.toLocaleString('en-US', {style: 'decimal', maximumFractionDigits: 0});
+}
+
 // returns the ratio text parsed from views and likes
-const parseRatio = () => {
+const buildRatio = () => {
   // parse the view count, expected format '93,123 views'
-  let viewsElem = $(viewCountSelector)
+  const viewsElem = $(viewCountSelector)
   let viewsText = viewsElem ? viewsElem.innerText.split(' ')[0] : null;
   if (viewsText === null) return;
   let views = parseCount(viewsText);
 
   // Parse the likes count, expected format 'like this video along with 3,239 other people'
-  let likesElem = $(likeButtonSelector);
+  const likesElem = $(likeButtonSelector);
   let likesText = likesElem ? likesElem.ariaLabel.split('with ')[1].split(' ')[0] : null;
   if (likesText === null) return;
   let likes = parseCount(likesText);
 
   // create the ratio
-  let ratio = likes * 1.0 / views;
-  let ratioText = `${(ratio * 100).toFixed(2)}% liked`;
-  // console.log('YouTube Likes Ratio >> ' + likes + ' likes / ' + views + ' views = ' + ratioText);
-  return ratioText;
-}
-
-// creates or updates the likes ratio container
-const createRatioElem = (ratioText) => {
-  if ($(`#${ratioElemId}`)) {
-    $(`#${ratioElemId}`).innerText = ratioText;
-  } else {
-    const ratioElem = document.createElement('div');
-    ratioElem.id = ratioElemId;
-    ratioElem.classList.add(
-      'yt-spec-button-shape-next--mono',
-      'yt-spec-button-shape-next--tonal',
-      'yt-spec-button-shape-next--size-m'
-    );
-    ratioElem.style.cssText = 'white-space: nowrap; margin-left: 8px;';
-    ratioElem.innerText = ratioText;
-    let anchorElem = $(ratioElemAnchor)
-    if (!anchorElem) throw new Error('Could not find anchor element ' + ratioElemAnchor);
-    anchorElem.insertAdjacentElement('afterend', ratioElem)
-
-    // check spacing to the next bubble
-    let nextElem = ratioElem.nextSibling;
-    if (nextElem) {
-      if (window.getComputedStyle(nextElem).getPropertyValue('margin-left') === '0px') {
-        ratioElem.style.marginRight = '8px';
-      }
-    }
+  let ratio = (100.0 * likes / views).toFixed(2);
+  let ratioText = `${ratio}% liked`;
+  let ratioTooltip = `${fmtNumber(likes)} likes / ${fmtNumber(views)} views = ${ratioText}`;
+  
+  // update and exit if the element already exists
+  const curElem = $(`#${ratioElemId}`);
+  if (curElem) {
+    curElem.innerText = ratioText;
+    curElem.title = ratioTooltip;
+    return;
   }
+
+  // create new element
+  const anchorElem = $(ratioElemAnchor);
+  if (!anchorElem) throw new Error('Could not find anchor element ' + ratioElemAnchor);
+  const newElem = document.createElement('div');
+  newElem.id = ratioElemId;
+  newElem.classList.add(
+    'yt-spec-button-shape-next--mono',
+    'yt-spec-button-shape-next--tonal',
+    'yt-spec-button-shape-next--size-m'
+  );
+  newElem.style.cssText = 'white-space: nowrap; margin-right: 8px;';
+  newElem.innerText = ratioText;
+  newElem.title = ratioTooltip;
+  anchorElem.insertAdjacentElement('beforeBegin', newElem);
 }
 
 // main function
 const parseLikes = () => {
   if (!hasNoErrors) return;
   try {
-    let ratioText = parseRatio();
-    createRatioElem(ratioText);
+    buildRatio();
   } catch(err) {
     console.warn('YouTube Likes Ratio >>', err.message);
     hasNoErrors = false;
