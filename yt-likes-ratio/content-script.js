@@ -5,10 +5,10 @@ let hasNoErrors = true;
 
 // element definitions
 const ratioElemId = 'yt-likes-ratio';
-const viewCountSelector = "#count > ytd-video-view-count-renderer > span.view-count.style-scope.ytd-video-view-count-renderer";
-const likeButtonSelector = '#top-level-buttons-computed > segmented-like-dislike-button-view-model > yt-smartimation > div > div > like-button-view-model > toggle-button-view-model > button';
+const viewCountSelector = '#count > ytd-video-view-count-renderer > span.view-count.style-scope.ytd-video-view-count-renderer';
 const ratioElemContainer = '#top-level-buttons-computed';
 const ratioElemAnchor = '#top-level-buttons-computed > segmented-like-dislike-button-view-model'
+const likeButtonSelector = '#top-level-buttons-computed > segmented-like-dislike-button-view-model > yt-smartimation > div > div > like-button-view-model > toggle-button-view-model > button-view-model > button';
 
 // query selector alias
 const $ = document.querySelector.bind(document);
