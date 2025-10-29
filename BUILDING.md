@@ -54,11 +54,13 @@ web-ext build
 
 ## Shared Functionality
 
-Both extensions use the same `content-script.js` file, which:
+Both extensions use the same `content-script.js` file (located in `src/` and symlinked from each extension directory), which:
 - Parses YouTube view counts and like counts
 - Calculates and displays the percentage of viewers who liked the video
 - Updates dynamically as you navigate between videos
 - Persists through YouTube's single-page app navigation
+
+The use of symbolic links ensures that any changes to the core functionality only need to be made once in `src/content-script.js`.
 
 ## Key Differences
 
@@ -71,6 +73,7 @@ Both extensions use the same `content-script.js` file, which:
 
 ## Notes
 
-- The content script works identically in both browsers
+- The content script is stored in `src/content-script.js` and symlinked from both extension directories
+- Changes to the content script only need to be made once in the `src/` directory
 - No build step is required - extensions can be loaded directly
 - Both extensions target the same YouTube selectors and functionality

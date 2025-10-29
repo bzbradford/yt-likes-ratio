@@ -14,7 +14,8 @@ The Firefox extension uses Manifest V2 for better compatibility and is located i
 
 ## Development
 
-Both extensions share the same core functionality but use different manifest formats to comply with their respective browser requirements:
+Both extensions share the same core functionality (located in `src/content-script.js`) but use different manifest formats to comply with their respective browser requirements:
 
 - **Chrome Extension**: Uses Manifest V3 with `host_permissions`
 - **Firefox Extension**: Uses Manifest V2 with `permissions` and includes `browser_specific_settings` for Firefox compatibility
+- **Shared Code**: The `content-script.js` in each extension directory is a symbolic link to `src/content-script.js`, ensuring changes only need to be made once
