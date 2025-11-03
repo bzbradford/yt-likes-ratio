@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "YouTube Likes Ratio",
   "description": "Shows percent of viewers who liked the video. Useful proxy for the old like:dislike ratio.",
-  "version": "1.3.7",
+  "version": "1.3.8",
   "permissions": [
     "*://*.youtube.com/*"
   ],
@@ -17,11 +17,5 @@
       "matches": ["*://*.youtube.com/*"],
       "js": ["content-script.js"]
     }
-  ],
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "yt-likes-ratio@bzbradford.github.io",
-      "strict_min_version": "57.0"
-    }
-  }
+  ]
 }
