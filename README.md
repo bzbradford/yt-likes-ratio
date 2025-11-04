@@ -10,6 +10,8 @@ The Chrome extension uses Manifest V3 and is located in the `chrome-extension` d
 
 ## Firefox Extension
 
+[View this extension on the Firefox app store](https://addons.mozilla.org/en-US/firefox/addon/youtube-likes-ratio/)
+
 The Firefox extension uses Manifest V2 for better compatibility and is located in the `firefox-extension` directory.
 
 ## Development
