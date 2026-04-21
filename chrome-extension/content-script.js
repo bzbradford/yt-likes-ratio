@@ -88,9 +88,9 @@ const buildRatio = () => {
   const newElem = document.createElement('div');
   newElem.id = ratioElemId;
   newElem.classList.add(
-    'yt-spec-button-shape-next--mono',
-    'yt-spec-button-shape-next--tonal',
-    'yt-spec-button-shape-next--size-m'
+    'ytSpecButtonShapeNextMono',
+    'ytSpecButtonShapeNextTonal',
+    'ytSpecButtonShapeNextSizeM'
   );
   newElem.style.cssText = 'white-space: nowrap; margin-right: 8px;';
   newElem.innerText = ratioText;
